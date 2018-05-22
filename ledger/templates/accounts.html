@@ -1,0 +1,20 @@
+{% extends 'index.html' %}
+
+{% block content %}
+{% if accounts %}
+    <ul>
+    {% for account in accounts %}
+	    <li><a href="">{{ account.name }}</a></li>
+        <ul>
+        {% for statement in account.statements.all %}
+            <li><a href="{% url 'view_statement' statement.id %}">{{ statement.date|date:"Y-m-d"  }}</a></li>
+        {% endfor %}
+        </ul>
+
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No accounts are available.</p>
+{% endif %}
+
+{% endblock %}

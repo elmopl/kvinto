@@ -1,0 +1,44 @@
+{% extends 'index.html' %}
+
+{% block head %}
+<style>
+.paid_in {color: red;}
+.gained {color: green;}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<h1>{{ group.name }}</h1>
+
+<table>
+<tr>
+<th></th>
+<th></th>
+{% for person in persons %}
+<th>{{ person.name }}</th>
+{% endfor %}
+</tr>
+{% for item, persons in costs %}
+<tr>
+<td><a href="{% url 'edit_transaction' item.transfer.transaction.id %}">{{ item.transfer.transaction.name }}</a> - {{item.name}}</td>
+<td>{{ item.total }}</td>
+{% for gained, paid_in in persons %}
+<td>
+    <span class="gained">{{ gained }}</span> - <span class="paid_in">{{ paid_in }}</span>
+</td>
+{% endfor %}
+</tr>
+{% endfor %}
+<tr>
+<td>Total</td>
+<td></td>
+{% for cost in totals %}
+<td><span class={% if cost > 0 %}gained{% else %}paid_in{% endif %}>{{ cost }}</span></td>
+{% endfor %}
+</tr>
+
+</table>
+
+{% endblock %}
+

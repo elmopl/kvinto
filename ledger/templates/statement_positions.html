@@ -1,0 +1,29 @@
+{% extends 'index.html' %}
+{% block content %}
+<table>
+{{ start_date }} - {{ end_date }}
+{% for row in positions %}
+    <tr>
+        <td>{{ row.transaction_date }}</td>
+        <td>{{ row.name }}</td>
+        <td class="currency-{{ row.statement.account.currency }}">{{ row.amount }}</td>
+        <td>
+            <a href="{% url 'view_statement' row.statement.id %}">
+                {{ row.statement.account.name}} {{row.statement.date}}
+            </a>
+        </td>
+        <td>
+            {% if row.transfer %}
+            <a href="{% url 'edit_transaction' row.transfer.transaction.id %}">View</a>
+            {% for participant in row.transfer.participants.all %}
+                {{ participant.person.name }}, 
+            {% endfor %}
+            {% else %} 
+            <a href="{% url 'create_transaction_for_statement_item' row.id %}">Make transaction</a>
+            {% endif %}
+
+        </td>
+    </tr>
+{% endfor %}
+</table>
+{% endblock %}

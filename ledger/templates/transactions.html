@@ -1,0 +1,13 @@
+{% extends 'index.html' %}
+
+{% block content %}
+
+
+<a href="{% url 'create_transaction' %}">Add transaction</a>
+
+<ul>
+{% for transaction in transactions %}
+<li><a href="{% url 'edit_transaction' transaction.id %}">{{ transaction.name }}</a></li>
+{% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,24 @@
+.amount {
+    width: 4em;
+}
+
+.ledger-participants-widget {
+    margin-left: 2em;
+}
+
+.ledger-weight-input {
+    width: 4em;
+}
+
+.ledger-remove-highlight {
+    background-color: #ffc4c4;
+}
+
+.no-matches {
+    background-color: #fccdc7;
+}
+
+.pending-matches {
+    background-color: #f8fcc7;
+}
+

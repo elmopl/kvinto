@@ -1,0 +1,22 @@
+<html>
+<head>
+{% block head %}
+{% endblock %}
+</head>
+<body>
+{% load menu %} 
+
+<ul class="menu">
+{% menu_items as items %}
+{% for pos in items %}
+    <li><a href="{% url pos.link %}">{{ pos.name }}</a></li>
+{% endfor %}
+</ul>
+
+{% block content %}
+{% endblock %}
+
+{% block footer %}
+{% endblock %}
+</body>
+</html>

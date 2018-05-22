@@ -1,0 +1,47 @@
+{% extends 'index.html' %}
+{% load datetime %} 
+
+{% block head %}
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    document.getElementById('view_state').addEventListener('click', function(){
+        console.log('asdf');
+        let start_date = document.getElementById('start_date').value;
+        let end_date = document.getElementById('end_date').value;
+        let url = "{% url 'statement_positions' 123 1 1 1 1 1 %}";
+        url = url.replace(/123.*/, start_date + '/' + end_date).replace(/-/g, '/');
+        window.location.href = url;
+    });
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<h1>Range view</h1>
+<input id="start_date" type="date" name="start_date" value="{% relative_date -1 %}"/>
+<input id="end_date" type="date" name="end_date" value="{% relative_date 0 %}"/>
+<button id="view_state">View</button>
+
+<h1>Statements</h1>
+
+{% if statements %}
+    <ul>
+    {% for statement in statements %}
+	    <li><a href="{% url 'view_statement' statement.id %}">{{ statement.date }} - {{ statement.account.name }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No statements are available.</p>
+{% endif %}
+
+<h1>Add new</h1>
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+<form action="{% url 'upload_statement' %}" method="post" enctype="multipart/form-data">
+{% csrf_token %}
+{{ upload_statement_form }}
+<input type="submit" value="Add" />
+</form>
+
+{% endblock %}

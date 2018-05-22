@@ -1,0 +1,14 @@
+{% extends 'index.html' %}
+
+{% block content %}
+{{ statement.date }} - <a href="{% url 'download_statement' statement.id %}">{{ statement.source.name }}</a>
+<table>
+{% for row in rows %}
+    <tr>
+        <td>{{ row.transaction_date }}</td>
+        <td>{{ row.name }}</td>
+        <td>{{ row.amount }}</td>
+    </tr>
+{% endfor %}
+</table>
+{% endblock %}

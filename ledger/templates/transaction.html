@@ -1,0 +1,26 @@
+{% extends 'index.html' %}
+
+{% block head %}
+{% load json %} 
+
+<script>
+let initial_form_data = {{ data|dump_json|safe }};
+</script>
+
+<script src="/static/js/transactions.js" type="text/javascript"></script>
+{{ transaction_form.media }}
+
+{% endblock %}
+
+{% block content %}
+
+Transaction<br />
+<form action="{{ action_url }}">
+<table>
+{% csrf_token %}
+{{ transaction_form.as_table }}
+</table>
+<input name="submit" class="submit" type="submit" value="{% if data.id %}Save{% else %}Create{% endif %}" />
+</form>
+
+{% endblock %}
