@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Sum
 
 def statement_upload_filename(instance, filename):
     return 'statements/user_{}/account_{}/{}'.format(
@@ -17,14 +18,30 @@ class Account(models.Model):
     owner = models.ForeignKey(Person, on_delete=models.PROTECT)
     name = models.CharField(max_length=100)
     currency = models.CharField(max_length=10)
+    number = models.CharField(max_length=50, null=True)
+    open_date = models.DateTimeField(null=True)
+    close_date = models.DateTimeField(null=True)
+
+    @property
+    def full_name(self):
+        return '{} - {}'.format(self.owner.name, self.name)
 
     def __str__(self):
         return '{} [{}]'.format(self.name, self.currency)
 
+    def balance(self, date):
+        return self.statements.filter(date__lte = date).aggregate(Sum('rows__amount'))['rows__amount__sum']
+
 class Statement(models.Model):
+    class Meta:
+        ordering = ['-date']
     account = models.ForeignKey(Account, on_delete=models.PROTECT, related_name='statements')
     source = models.FileField(upload_to=statement_upload_filename)
     date = models.DateField()
+
+    @property
+    def closing_balance(self):
+        return self.account.balance(self.date)
 
 class StatementRow(models.Model):
     statement = models.ForeignKey(Statement, on_delete=models.CASCADE, related_name='rows')
@@ -35,6 +52,8 @@ class StatementRow(models.Model):
 
 class TransactionGroup(models.Model):
     created = models.DateTimeField(auto_now=True)
+    settled = models.DateTimeField(null=True)
+    reference = models.CharField(max_length=20, unique=True)
     name = models.CharField(max_length=150)
 
 class Transaction(models.Model):
@@ -67,6 +86,15 @@ class Transfer(models.Model):
         related_name='transfer',
         null=True
     )
+
+    @property
+    def groups(self):
+        group_ids = [
+            item.group.id
+            for item in self.items.all()
+            if item.group is not None
+        ]
+        return TransactionGroup.objects.filter(id__in = group_ids).distinct()
 
 class TransferItem(models.Model):
     group = models.ForeignKey(

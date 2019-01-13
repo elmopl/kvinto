@@ -100,11 +100,11 @@ def edit(request, transaction_id):
                 'id': transfer.id,
                 'source_account': {
                     'id': transfer.source.id,
-                    'name': transfer.source.name,
+                    'name': transfer.source.full_name,
                 },
                 'destination_account': {
                     'id': transfer.destination.id,
-                    'name': transfer.destination.name,
+                    'name': transfer.destination.full_name,
                 },
                 'items': [
                     {
@@ -147,24 +147,32 @@ def create(request):
 
 def create_for_statement_item(request, statement_row_id):
     info = StatementRow.objects.get(id=statement_row_id)
+    statement_account = {
+        'id': info.statement.account.id,
+        'name': info.statement.account.full_name,
+    }
+
+    if info.amount < 0:
+        amount = -info.amount
+        source_account = statement_account
+        destination_account = None
+    else:
+        source_account = None
+        destination_account = statement_account
+        amount = info.amount
+
     data = {
         'name': info.name,
         'transfers': [
             {
                 'statement_row': info.id,
-                'source_account': {
-                    'id': info.statement.account.id,
-                    'name': info.statement.account.name,
-                },
+                'source_account': source_account,
+                'destination_account': destination_account,
                 'items': [
                     {
                         'name': info.name,
-                        'source_amount': -info.amount,
-                        'destination_amount': -info.amount,
-                        'group': {
-                            'id': info.group and info.group.id,
-                            'name': info.group and info.group.name,
-                        },
+                        'source_amount': amount,
+                        'destination_amount': amount,
                         'participants': [
                             {
                                 'weight': 1,

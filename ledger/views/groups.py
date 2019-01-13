@@ -16,20 +16,43 @@ from django.http import JsonResponse
 from django.db import transaction
 from django.db.models import Sum
 from django.db.models import Count
+from django.db.models import Q
 
 import json
 
 def edit(request, group_id):
     group = TransactionGroup.objects.get(id=group_id)
+    settled = group.settled
     data = {
         'name': group.name,
         'id': group.id,
-        'transactions': [
+        'reference': group.reference,
+        'settled': settled.isoformat() if settled else None,
+        'transfers': [
             {
-                'name': transaction.name + ' @ ' + str(transaction.date),
-                'id': transaction.id,
+                'name': item.name,
+                'id': item.id,
+                'transaction': {
+                    'id': item.transfer.transaction.id,
+                    'name': item.transfer.transaction.name,
+                    'link': reverse('edit_transaction', args=[item.transfer.transaction.id]),
+                    'date': str(item.transfer.transaction.date),
+                },
+                'source_amount': item.source_amount,
+                'destination_amount': item.destination_amount,
+                'participants': [
+                    {
+                        'id': participant.person.id,
+                        'name': participant.person.name,
+                    }
+                    for participant in item.participants.all()
+                ],
+                'source_account': {
+                    'id': item.transfer.source.id,
+                    'name': item.transfer.source.full_name,
+                }
             }
-            for transaction in group.transactions.all()
+            for item in group.transfer_items.all()
         ]
     }
 
@@ -39,7 +62,6 @@ def save(request):
     data = json.loads(request.body)
     with transaction.atomic():
         group = TransactionGroup.objects.get(id=data['id'])
-        group.transactions.clear()
         _populate_group(group, data)
 
     return JsonResponse({
@@ -53,9 +75,7 @@ def list(request):
     }
     return render(request, 'groups_list.html', context)
 
-
-def summary(request, group_id):
-    group = TransactionGroup.objects.get(id=group_id)
+def _group_costs(group):
     items = group.transfer_items.all()
 
     participants = TransferItemParticipant.objects.filter(transfer_item__group = group)
@@ -72,7 +92,7 @@ def summary(request, group_id):
         if participated:
             gained = item.source_amount * participated.weight / total_weight
 
-        return round(gained, 2), paid_in or 0 
+        return round(gained / 100, 2), round((paid_in or 0) / 100, 2)
 
     costs = {
         item: {
@@ -90,9 +110,9 @@ def summary(request, group_id):
         for person in persons
     }
 
-    context = {
-        'persons': persons,
+    return {
         'group': group,
+        'persons': persons,
         'costs': [
             [
                 item,
@@ -108,22 +128,43 @@ def summary(request, group_id):
             for person in persons
         ]
     }
+
+def unsettled(request):
+    groups = TransactionGroup.objects.filter(settled=None)
+    groups = groups.order_by('name')
+
+    context = {
+        'groups': [
+            _group_costs(group)
+            for group in groups
+        ]
+    }
+
+    return render(request, 'groups_summary.html', context)
+
+def summary(request, group_id):
+    group = TransactionGroup.objects.get(id=group_id)
+
+    context = _group_costs(group)
+
     return render(request, 'group_summary.html', context)
 
 def _show_form(request, url, data):
     context = {
         'action_url': url,
-        'data': data,
+        'data': json.dumps(data),
+        'group_id': data['id'],
     }
     return render(request, 'group_form.html', context)
 
 def _populate_group(group, data):
-    group.name = data['name']
+    group.name = data['name'].strip()
+    group.reference = data['reference'].strip()
+    if data['settled']:
+        group.settled = data['settled']
+    else:
+        group.settled = None
     group.save()
-    for transaction_info in data['transactions']:
-        transaction = Transaction.objects.get(id=transaction_info['id'])
-        transaction.group = group
-        transaction.save()
 
 def create(request):
     if request.method == 'POST':
@@ -142,12 +183,13 @@ def create(request):
 def groups_match(request):
     query = json.loads(request.body)
     
-    groups = TransactionGroup.objects.filter(name__contains=query['name'])
+    name = query['name']
+    groups = TransactionGroup.objects.filter(Q(name__contains=name) | Q(reference__contains=name))
     return JsonResponse({
         'matches': [
             {
                 'id': group.id,
-                'name': group.name,
+                'name': '{} - {}'.format(group.reference, group.name),
             }
             for group in groups
         ]

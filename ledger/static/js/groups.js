@@ -12,17 +12,22 @@ function LedgerGroupForm(form)
     this.name.name = 'name';
     this.form.appendChild(this.name);
 
-    let container = document.createElement('div');
-    container.style['padding-left'] = '3em';
-    this.transactions = document.createElement('div');
-    container.appendChild(this.transactions);
-    let add = document.createElement('span');
-    add.textContent = '[+]';
-    add.addEventListener('click', function(){self.add_transaction();});
+    this.reference = document.createElement('input');
+    this.reference.type = 'text';
+    this.reference.name = 'reference';
+    this.form.appendChild(this.reference);
 
-    container.appendChild(this.transactions);
-    container.appendChild(add);
-    this.form.appendChild(container);
+    this.form.appendChild(document.createElement('br'));
+
+    this.settled = document.createElement('input');
+    this.settled.type = 'datetime-local';
+    this.settled.name = 'settled';
+    this.form.appendChild(this.settled);
+
+    this.form.appendChild(document.createElement('br'));
+
+    this.transfers = document.createElement('table');
+    this.form.appendChild(this.transfers);
 
     document.getElementsByName('submit')[0].addEventListener('click', this.submit.bind(this));
 }
@@ -58,58 +63,41 @@ LedgerGroupForm.prototype.submit = function(evt)
 
 LedgerGroupForm.prototype.data = function()
 {
-    let transactions = [];
-    for (let transaction of this.transactions.querySelectorAll('option:checked') || [])
-    {
-        transactions.push({
-            'id': transaction.value,
-            'name': transaction.textContent,
-        });
-    }
-
     return {
         id: this.group_id,
         name: this.form.querySelector('[name=name]').value,
-        transactions: transactions,
+        reference: this.form.querySelector('[name=reference]').value,
+        settled: this.form.querySelector('[name=settled]').value,
     }
 }
 
-LedgerGroupForm.prototype.add_transaction = function(data)
+LedgerGroupForm.prototype.add_transfer = function(data)
 {
     let csrf_token = this.csrf_token;
-    let row = document.createElement('div');
-    let transaction = document.createElement('input');
-    transaction.name = 'transaction';
-    let remove = make_remove_button(row);
-    row.appendChild(transaction);
-    row.appendChild(remove);
+    let row = this.transfers.insertRow();
 
-    this.transactions.appendChild(row);
+    let cell = row.insertCell();
+    let link = document.createElement('a');
+    link.text = data.transaction.name + ' ('+data.name+')';
+    link.href = data.transaction.link;
+    cell.appendChild(link);
 
-    transaction.focus();
+    cell = row.insertCell();
+    cell.innerHTML = data.transaction.date;
 
-    new AutocompleteWidget(
-        transaction,
-        function(query, clb){
-            get_matches(
-                function(matches){
-                    let reformatted = [];
-                    for (match of matches)
-                    {
-                        reformatted.push({
-                            'id': match.id,
-                            'name': match.name + ' @ ' + match.date,
-                        });
-                    }
-                    clb(reformatted);
-                },
-                '/transactions/match',
-                csrf_token,
-                query
-            );
-        },
-        data
-    );
+    cell = row.insertCell();
+    cell.innerHTML = data.source_amount;
+
+    cell = row.insertCell();
+    cell.innerHTML = data.source_account.name;
+
+    cell = row.insertCell();
+    let participant_names = [];
+    for (let participant of data.participants)
+    {
+        participant_names.push(participant.name);
+    }
+    cell.innerHTML = participant_names.join(', ');
 }
 
 document.addEventListener('DOMContentLoaded', function(){
@@ -117,12 +105,14 @@ document.addEventListener('DOMContentLoaded', function(){
         document.getElementsByTagName('form')[0]
     );
 
-    console.log(JSON.stringify(initial_form_data));
+    console.log(initial_form_data);
 
-    form.name.value = initial_form_data.name;
+    form.name.value = initial_form_data.name || '';
+    form.reference.value = initial_form_data.reference || '';
+    form.settled.value = (initial_form_data.settled || '').split('+')[0];
     form.set_id(initial_form_data.id);
-    for (transaction of initial_form_data.transactions)
+    for (transaction of initial_form_data.transfers)
     {
-        form.add_transaction(transaction);
+        form.add_transfer(transaction);
     }
 });

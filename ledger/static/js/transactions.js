@@ -28,8 +28,6 @@ LedgerTransactionForm.prototype.submit = function(evt)
     xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
     xhr.setRequestHeader('X-CSRFToken', this.csrf_token);
 
-    console.log(JSON.stringify(data));
-  
     // send the collected data as JSON
     xhr.send(JSON.stringify(data));
   

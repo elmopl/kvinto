@@ -9,7 +9,9 @@
 
 {% block content %}
 
-{% include "group_costs.html" with group=group %}
+{% for info in groups %}
+{% include "group_costs.html" with group=info.group costs=info.costs totals=info.totals persons=info.persons %}
+{% endfor %}
 
 {% endblock %}
 

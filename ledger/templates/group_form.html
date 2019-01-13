@@ -1,6 +1,7 @@
 {% extends 'index.html' %}
 
 {% block head %}
+{% load datetime %} 
 
 <script>
 let initial_form_data = {{ data|safe }};
@@ -14,13 +15,13 @@ let initial_form_data = {{ data|safe }};
 
 {% block content %}
 
-{% if data.id %}
-<a href="{% url 'group_summary' data.id %}">Summary</a>
+{% if group_id %}
+<a href="{% url 'group_summary' group_id %}">Summary</a>
 {% endif %}
 <form action="{{ action_url }}">
 <table>
 {% csrf_token %}
-<input name="submit" class="submit" type="submit" value="{% if data.id %}Save{% else %}Create{% endif %}" />
+<input name="submit" class="submit" type="submit" value="{% if data %}Save{% else %}Create{% endif %}" />
 </form>
 
 {% endblock %}

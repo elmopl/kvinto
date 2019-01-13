@@ -188,8 +188,8 @@ LedgerTransfersWidget.prototype.data = function()
                     id: parseInt(item.querySelector('[name=group]').value),
                     name: item.querySelector('[name=group]').textContent,
                 },
-                source_amount: parseInt(transfer.querySelector('[name=source_amount]').value),
-                destination_amount: parseInt(transfer.querySelector('[name=destination_amount]').value),
+                source_amount: parseInt(item.querySelector('[name=source_amount]').value),
+                destination_amount: parseInt(item.querySelector('[name=destination_amount]').value),
                 participants: participants,
             });
         }

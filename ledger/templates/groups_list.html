@@ -1,6 +1,10 @@
 {% extends 'index.html' %}
 
 {% block content %}
+
+<a href="{% url 'unsettled_groups' %}">Unsettled</a><br />
+<a href="{% url 'create_group' %}">Add group</a><br />
+
 {% if groups %}
     <ul>
     {% for group in groups %}

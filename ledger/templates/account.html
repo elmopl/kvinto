@@ -1,0 +1,10 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<h1>{{ account.full_name }}</h1>
+{% for statement in account.statements.all %}
+<li><a href="{% url 'view_statement' statement.id %}">{{ statement.date|date:"Y-m-d"  }} - {{statement.closing_balance}}</a></li>
+{% endfor %}
+</ul>
+
+{% endblock %}

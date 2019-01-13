@@ -15,6 +15,13 @@
         <td>
             {% if row.transfer %}
             <a href="{% url 'edit_transaction' row.transfer.transaction.id %}">View</a>
+
+            (
+            {% for group in row.transfer.groups %}
+            <a href="{% url 'group_summary' group.id %}">{{group.name}}</a>
+            {% endfor %}
+            )</a>
+
             {% for participant in row.transfer.participants.all %}
                 {{ participant.person.name }}, 
             {% endfor %}

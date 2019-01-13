@@ -3,6 +3,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path('', views.dashboard.main, name='dashboard'),
+
     path('statements/list', views.statements.statements_list, name='list_statements'),
     path('statements/view/<int:statement_id>', views.statements.show, name='view_statement'),
     path('statements/items/<int:year>', views.statements.show_year_positions, name='statement_year_positions'),
@@ -12,7 +14,8 @@ urlpatterns = [
     path('statements/destroy/<int:statement_id>', views.statements.destroy, name='destroy_statement'),
 
     path('accounts/list', views.accounts.accounts_list, name='list_accounts'),
-    path('accounts/match', views.accounts.accounts_match, name='match_accounts'),
+    path('accounts/list', views.accounts.accounts_list, name='list_accounts'),
+    path('account/<int:account_id>', views.accounts.account, name='account'),
 
     path('persons/match', views.persons.persons_match, name='match_persons'),
 
@@ -30,4 +33,5 @@ urlpatterns = [
     path('groups/summary/<int:group_id>', views.groups.summary, name='group_summary'),
     path('groups/save', views.groups.save, name='save_group'),
     path('groups/match', views.groups.groups_match, name='match_groups'),
+    path('groups/unsettled', views.groups.unsettled, name='unsettled_groups'),
 ]

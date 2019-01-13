@@ -4,9 +4,9 @@
 {% if accounts %}
     <ul>
     {% for account in accounts %}
-	    <li><a href="">{{ account.name }}</a></li>
+	    <li><a href="{% url 'account' account.id %}">{{ account.full_name }}</a></li>
         <ul>
-        {% for statement in account.statements.all %}
+        {% for statement in account.statements.all|slice:"0:3" %}
             <li><a href="{% url 'view_statement' statement.id %}">{{ statement.date|date:"Y-m-d"  }}</a></li>
         {% endfor %}
         </ul>
